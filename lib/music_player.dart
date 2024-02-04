@@ -31,6 +31,12 @@ class _MusicPlayerState extends State<MusicPlayer> {
     });
 
     _audioPlayer.onPlayerComplete.listen((event) {
+      print("_audioPlayer.state : ${_audioPlayer.state}");
+      _audioPlayer.seek(const Duration(seconds: 0));
+      if (_audioPlayer.state == PlayerState.playing) {
+        _audioPlayer.pause(); // 先暂停
+        _audioPlayer.resume(); // 再继续播放，实现循环
+      }
       setState(() {
         _position = _duration;
       });
@@ -38,20 +44,22 @@ class _MusicPlayerState extends State<MusicPlayer> {
   }
 
   void playOrPause() {
-    if (_audioPlayer.state == PlayerState.playing)
-    {
+    if (_audioPlayer.state == PlayerState.playing) {
       print('暫停播放');
       _audioPlayer.pause();
-    }
-    else
-    {
+    } else {
       print('開始播放');
       _audioPlayer.resume();
     }
     print('Audio Player State: ${_audioPlayer.state}');
-    setState(() {
+    setState(() {});
+  }
 
-    });
+  String formatDuration(Duration duration){
+    String twoDigits(int n) => n.toString().padLeft(2,"0");
+    String twoDigitMinuntes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "${twoDigits(duration.inHours)}:$twoDigitMinuntes:$twoDigitSeconds";
   }
 
   @override
@@ -93,11 +101,9 @@ class _MusicPlayerState extends State<MusicPlayer> {
 
             //音樂控制
             Slider(
-              onChanged: (value) async{
+              onChanged: (value) async {
                 await _audioPlayer.seek(Duration(seconds: value.toInt()));
-                setState(() {
-
-                });
+                setState(() {});
               },
               value: _position.inSeconds.toDouble(),
               min: 0,
@@ -105,7 +111,7 @@ class _MusicPlayerState extends State<MusicPlayer> {
               inactiveColor: Colors.grey,
               activeColor: Colors.red,
             ),
-            const Text('00:02:18 / 00:03:22'),
+            Text('${formatDuration(_position)} / ${formatDuration(_duration)}'),
             const SizedBox(
               height: 20,
             ),
@@ -113,7 +119,10 @@ class _MusicPlayerState extends State<MusicPlayer> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    _audioPlayer
+                        .seek(Duration(seconds: _position.inSeconds - 10));
+                  },
                   icon: const Icon(Icons.fast_rewind),
                   iconSize: 40,
                 ),
@@ -125,7 +134,10 @@ class _MusicPlayerState extends State<MusicPlayer> {
                   iconSize: 50,
                 ),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    _audioPlayer
+                        .seek(Duration(seconds: _position.inSeconds + 10));
+                  },
                   icon: const Icon(Icons.fast_forward),
                   iconSize: 40,
                 ),
