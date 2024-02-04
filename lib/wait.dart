@@ -12,8 +12,7 @@ class CustomBody extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('This is the body content'),
-          Text(pageName),
+          Text(pageName,style: TextStyle(color: Colors.white, fontSize: 36),),
         ],
       ),
     );

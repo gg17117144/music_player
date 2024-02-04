@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:gif/gif.dart';
 
 class MusicPlayer extends StatefulWidget {
   const MusicPlayer({super.key});
@@ -8,17 +9,19 @@ class MusicPlayer extends StatefulWidget {
   State<MusicPlayer> createState() => _MusicPlayerState();
 }
 
-class _MusicPlayerState extends State<MusicPlayer> {
-  final String audioUrl = "audio/toothless-dancing-meme-new-variations.mp3";
+class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin{
+  late GifController controller= GifController (vsync: this);
+
+  final String audioUrl = "audio/toothlessDancing.mp3";
   late AudioPlayer _audioPlayer;
   late Duration _duration;
   late Duration _position;
 
-  void playerInit() {
+  void musicPlayerInit() {
     _audioPlayer = AudioPlayer();
     _audioPlayer.setSourceAsset(audioUrl);
-    _duration = Duration();
-    _position = Duration();
+    _duration = const Duration();
+    _position = const Duration();
 
     _audioPlayer.onDurationChanged.listen((Duration duration) {
       _duration = duration;
@@ -47,24 +50,28 @@ class _MusicPlayerState extends State<MusicPlayer> {
     if (_audioPlayer.state == PlayerState.playing) {
       print('暫停播放');
       _audioPlayer.pause();
+      controller.stop();
     } else {
       print('開始播放');
       _audioPlayer.resume();
+      controller.forward();
     }
     print('Audio Player State: ${_audioPlayer.state}');
     setState(() {});
   }
 
+  //控制Duration的字的數量
   String formatDuration(Duration duration){
     String twoDigits(int n) => n.toString().padLeft(2,"0");
-    String twoDigitMinuntes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "${twoDigits(duration.inHours)}:$twoDigitMinuntes:$twoDigitSeconds";
+    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 
+  //start
   @override
   void initState() {
-    playerInit();
+    musicPlayerInit();
     super.initState();
   }
 
@@ -75,6 +82,7 @@ class _MusicPlayerState extends State<MusicPlayer> {
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,12 +91,29 @@ class _MusicPlayerState extends State<MusicPlayer> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            //歌曲訊息
-            Image.asset(
-              'assets/icons/toothless dance.png',
+            Gif(
+              controller: controller,
+              // image: const AssetImage('assets/images/ToothlessDance.gif'),
+              image: const NetworkImage(
+                  'https://media.tenor.com/RcX3hUY425kAAAAi/toothless-dragon-toothless.gif'),
+              autostart: Autostart.loop,
+              placeholder: (context) =>
+                const Center(child: CircularProgressIndicator()),
+              // placeholder: (context) => const Text('Loading...'),
+              // duration: const Duration(seconds: 3),
               height: 200,
               width: 200,
+              onFetchCompleted: () {
+                controller.reset();
+                controller.forward();
+              }
             ),
+            //歌曲訊息
+            // Image.asset(
+            //   'assets/images/ToothlessDance.gif',
+            //   height: 200,
+            //   width: 200,
+            // ),
             const SizedBox(
               height: 40,
             ),
@@ -97,7 +122,7 @@ class _MusicPlayerState extends State<MusicPlayer> {
             const SizedBox(
               height: 10,
             ),
-            const Text('歌手名', style: TextStyle(fontSize: 14)),
+            const Text('歌手名', style: TextStyle(color: Colors.white,fontSize: 14)),
 
             //音樂控制
             Slider(
@@ -111,7 +136,8 @@ class _MusicPlayerState extends State<MusicPlayer> {
               inactiveColor: Colors.grey,
               activeColor: Colors.red,
             ),
-            Text('${formatDuration(_position)} / ${formatDuration(_duration)}'),
+
+            Text('${formatDuration(_position)} / ${formatDuration(_duration)}',style: TextStyle(color: Colors.white,),),
             const SizedBox(
               height: 20,
             ),

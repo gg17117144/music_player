@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:music_player/music_player.dart';
 import 'package:music_player/wait.dart';
+import 'package:music_player/menu.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,7 +38,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _pages = [
     const CustomBody('Home'),
     const MusicPlayer(),
-    const CustomBody('Menu'),
+    const Menu(),
   ];
 
   @override
@@ -51,9 +52,9 @@ class _MainPageState extends State<MainPage> {
             _currentIndex = index;
           });
         },
-        // 设置为 fixed
+        //模式是底部瀏覽模式
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.black, // 设置 AppBar 的背景颜色
+        backgroundColor: Colors.black, // 設定AppBar的背景颜色
 
         selectedLabelStyle: const TextStyle(height: 0),
         // 将选中标签文本的高度设置为0
