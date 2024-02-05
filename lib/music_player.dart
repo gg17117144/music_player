@@ -3,7 +3,9 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:gif/gif.dart';
 
 class MusicPlayer extends StatefulWidget {
-  const MusicPlayer({super.key});
+  final String song;
+
+  const MusicPlayer({Key? key, required this.song});
 
   @override
   State<MusicPlayer> createState() => _MusicPlayerState();
@@ -11,8 +13,9 @@ class MusicPlayer extends StatefulWidget {
 
 class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin{
   late GifController controller= GifController (vsync: this);
-
-  final String audioUrl = "audio/toothlessDancing.mp3";
+  late String song;
+  late String audioUrl;
+  // final String audioUrl = "audio/toothlessDance.mp3";
   late AudioPlayer _audioPlayer;
   late Duration _duration;
   late Duration _position;
@@ -54,6 +57,7 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
     } else {
       print('開始播放');
       _audioPlayer.resume();
+      controller.reset();
       controller.forward();
     }
     print('Audio Player State: ${_audioPlayer.state}');
@@ -71,6 +75,9 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
   //start
   @override
   void initState() {
+    song = widget.song;
+    audioUrl = "audio/$song.mp3";
+    print("audioUrl:$audioUrl");
     musicPlayerInit();
     super.initState();
   }
@@ -82,7 +89,6 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,36 +99,22 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
           children: [
             Gif(
               controller: controller,
-              // image: const AssetImage('assets/images/ToothlessDance.gif'),
-              image: const NetworkImage(
-                  'https://media.tenor.com/RcX3hUY425kAAAAi/toothless-dragon-toothless.gif'),
+              image: AssetImage("assets/images/$song.gif"),
               autostart: Autostart.loop,
               placeholder: (context) =>
                 const Center(child: CircularProgressIndicator()),
-              // placeholder: (context) => const Text('Loading...'),
-              // duration: const Duration(seconds: 3),
               height: 200,
               width: 200,
-              onFetchCompleted: () {
-                controller.reset();
-                controller.forward();
-              }
             ),
-            //歌曲訊息
-            // Image.asset(
-            //   'assets/images/ToothlessDance.gif',
-            //   height: 200,
-            //   width: 200,
-            // ),
             const SizedBox(
               height: 40,
             ),
-            const Text('Music Title標題',
-                style: TextStyle(fontSize: 24, color: Colors.red)),
+            Text(song,
+                style: const TextStyle(fontSize: 24, color: Colors.red)),
             const SizedBox(
               height: 10,
             ),
-            const Text('歌手名', style: TextStyle(color: Colors.white,fontSize: 14)),
+            // const Text('歌手名', style: TextStyle(color: Colors.white,fontSize: 14)),
 
             //音樂控制
             Slider(

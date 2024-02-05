@@ -37,7 +37,7 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = [
     const CustomBody('Home'),
-    const MusicPlayer(),
+    const MusicPlayer(song: 'ToothlessDancing',),
     const Menu(),
   ];
 
