@@ -1,47 +1,51 @@
-import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/material.dart';
 import 'package:gif/gif.dart';
+import 'package:provider/provider.dart';
+
+import 'audioPlayerProvider.dart';
 
 class MusicPlayer extends StatefulWidget {
-  final String song;
-
-  const MusicPlayer({Key? key, required this.song});
+  const MusicPlayer({super.key});
 
   @override
   State<MusicPlayer> createState() => _MusicPlayerState();
 }
 
-class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin{
-  late GifController controller= GifController (vsync: this);
+class _MusicPlayerState extends State<MusicPlayer>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+
+
+  late GifController controller = GifController(vsync: this);
   late String song;
   late String audioUrl;
-  // final String audioUrl = "audio/toothlessDance.mp3";
-  late AudioPlayer _audioPlayer;
   late Duration _duration;
   late Duration _position;
 
+  late AudioPlayerProvider audioPlayerProvider;
+
   void musicPlayerInit() {
-    _audioPlayer = AudioPlayer();
-    _audioPlayer.setSourceAsset(audioUrl);
+    audioPlayerProvider.audioPlayer = AudioPlayer();
+    audioPlayerProvider.audioPlayer.setSourceAsset(audioUrl);
     _duration = const Duration();
     _position = const Duration();
 
-    _audioPlayer.onDurationChanged.listen((Duration duration) {
+    audioPlayerProvider.audioPlayer.onDurationChanged.listen((Duration duration) {
       _duration = duration;
       setState(() {});
     });
 
-    _audioPlayer.onPositionChanged.listen((Duration position) {
+    audioPlayerProvider.audioPlayer.onPositionChanged.listen((Duration position) {
       _position = position;
       setState(() {});
     });
 
-    _audioPlayer.onPlayerComplete.listen((event) {
-      print("_audioPlayer.state : ${_audioPlayer.state}");
-      _audioPlayer.seek(const Duration(seconds: 0));
-      if (_audioPlayer.state == PlayerState.playing) {
-        _audioPlayer.pause(); // 先暂停
-        _audioPlayer.resume(); // 再继续播放，实现循环
+    audioPlayerProvider.audioPlayer.onPlayerComplete.listen((event) {
+      print("_audioPlayer.state : ${audioPlayerProvider.audioPlayer.state}");
+      audioPlayerProvider.audioPlayer.seek(const Duration(seconds: 0));
+      if (audioPlayerProvider.audioPlayer.state == PlayerState.playing) {
+        audioPlayerProvider.audioPlayer.pause(); // 先暂停
+        audioPlayerProvider.audioPlayer.resume(); // 再继续播放，实现循环
       }
       setState(() {
         _position = _duration;
@@ -50,43 +54,68 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
   }
 
   void playOrPause() {
-    if (_audioPlayer.state == PlayerState.playing) {
-      print('暫停播放');
-      _audioPlayer.pause();
+    if (audioPlayerProvider.audioPlayer.state == PlayerState.playing) {
+      print('暫停播放GIF');
+      audioPlayerProvider.stopSong();
       controller.stop();
     } else {
-      print('開始播放');
-      _audioPlayer.resume();
-      controller.reset();
-      controller.forward();
+      print('開始播放GIF');
+      audioPlayerProvider.playSong();
+      controller.repeat();
     }
-    print('Audio Player State: ${_audioPlayer.state}');
+    print('Audio Player State: ${audioPlayerProvider.audioPlayer.state}');
     setState(() {});
   }
 
   //控制Duration的字的數量
-  String formatDuration(Duration duration){
-    String twoDigits(int n) => n.toString().padLeft(2,"0");
+  String formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
     return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 
-  //start
   @override
   void initState() {
-    song = widget.song;
-    audioUrl = "audio/$song.mp3";
-    print("audioUrl:$audioUrl");
-    musicPlayerInit();
     super.initState();
+    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+    song = audioProvider.currentSong;
+    audioUrl = "audio/$song.mp3";
+    audioPlayerProvider =
+        Provider.of<AudioPlayerProvider>(context, listen: false);
+    _duration = const Duration();
+    _position = const Duration();
+
+    audioProvider.addListener(() {
+      final newSong = audioProvider.currentSong;
+      if (newSong != song) {
+        song = newSong;
+        audioUrl = "audio/$song.mp3";
+        setState(() {});
+      }
+    });
+
+    audioPlayerProvider.playSong();
+
+    audioPlayerProvider.audioPlayer.onDurationChanged
+        .listen((Duration duration) {
+      setState(() {
+        _duration = duration;
+      });
+    });
+
+    audioPlayerProvider.audioPlayer.onPositionChanged
+        .listen((Duration position) {
+      setState(() {
+        _position = position;
+      });
+    });
   }
 
   @override
   void dispose() {
-    _audioPlayer.release();
-    _audioPlayer.dispose();
     super.dispose();
+    audioPlayerProvider.stopSong();
   }
 
   @override
@@ -102,15 +131,14 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
               image: AssetImage("assets/images/$song.gif"),
               autostart: Autostart.loop,
               placeholder: (context) =>
-                const Center(child: CircularProgressIndicator()),
+                  const Center(child: CircularProgressIndicator()),
               height: 200,
               width: 200,
             ),
             const SizedBox(
               height: 40,
             ),
-            Text(song,
-                style: const TextStyle(fontSize: 24, color: Colors.red)),
+            Text(song, style: const TextStyle(fontSize: 24, color: Colors.red)),
             const SizedBox(
               height: 10,
             ),
@@ -119,7 +147,8 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
             //音樂控制
             Slider(
               onChanged: (value) async {
-                await _audioPlayer.seek(Duration(seconds: value.toInt()));
+                await audioPlayerProvider.audioPlayer
+                    .seek(Duration(seconds: value.toInt()));
                 setState(() {});
               },
               value: _position.inSeconds.toDouble(),
@@ -129,7 +158,12 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
               activeColor: Colors.red,
             ),
 
-            Text('${formatDuration(_position)} / ${formatDuration(_duration)}',style: TextStyle(color: Colors.white,),),
+            Text(
+              '${formatDuration(_position)} / ${formatDuration(_duration)}',
+              style: const TextStyle(
+                color: Colors.white,
+              ),
+            ),
             const SizedBox(
               height: 20,
             ),
@@ -138,7 +172,7 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
               children: [
                 IconButton(
                   onPressed: () {
-                    _audioPlayer
+                    audioPlayerProvider.audioPlayer
                         .seek(Duration(seconds: _position.inSeconds - 10));
                   },
                   icon: const Icon(Icons.fast_rewind),
@@ -146,14 +180,14 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
                 ),
                 IconButton(
                   onPressed: playOrPause,
-                  icon: Icon(_audioPlayer.state == PlayerState.playing
+                  icon: Icon(audioPlayerProvider.audioPlayer.state == PlayerState.playing
                       ? Icons.pause
                       : Icons.play_arrow),
                   iconSize: 50,
                 ),
                 IconButton(
                   onPressed: () {
-                    _audioPlayer
+                    audioPlayerProvider.audioPlayer
                         .seek(Duration(seconds: _position.inSeconds + 10));
                   },
                   icon: const Icon(Icons.fast_forward),
@@ -166,4 +200,9 @@ class _MusicPlayerState extends State<MusicPlayer> with TickerProviderStateMixin
       ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
+
 }

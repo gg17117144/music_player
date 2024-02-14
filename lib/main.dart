@@ -2,9 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:music_player/music_player.dart';
 import 'package:music_player/wait.dart';
 import 'package:music_player/menu.dart';
+import 'package:provider/provider.dart';
+import 'audioPlayerProvider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AudioPlayerProvider()),
+      ],
+    child: const MyApp(),
+  ),);
 }
 
 class MyApp extends StatelessWidget {
@@ -15,10 +23,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: Colors.black, // 设置整个应用程序的背景颜色为黑色
-        splashColor: Colors.transparent, // 设置溅墨颜色为透明
-        highlightColor: Colors.transparent, // 设置高亮颜色为透明
+        useMaterial3: true,// 使用Material3
+        scaffoldBackgroundColor: Colors.black, // 背景黑
+        splashColor: Colors.transparent, // 將點擊變透明
+        highlightColor: Colors.transparent, // 將點擊變透明
       ),
       home: const MainPage(),
     );
@@ -26,44 +34,63 @@ class MyApp extends StatelessWidget {
 }
 
 class MainPage extends StatefulWidget {
+
   const MainPage({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  _MainPageState createState() => _MainPageState();
+
+  static _MainPageState? of(BuildContext context) => context.findAncestorStateOfType<_MainPageState>();
 }
 
 class _MainPageState extends State<MainPage> {
-  int _currentIndex = 0;
+  final PageController _pageController = PageController();
 
-  final List<Widget> _pages = [
-    const CustomBody('Home'),
-    const MusicPlayer(song: 'ToothlessDancing',),
-    const Menu(),
-  ];
+  //start
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void changePage(int index) {
+    _pageController.jumpToPage(index);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: PageView(
+        controller: _pageController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          CustomBody('Home'),
+          MusicPlayer(),
+          Menu(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
+        // currentIndex: _pageController.page?.round() ?? 0,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          changePage(index);
         },
-        //模式是底部瀏覽模式
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.black, // 設定AppBar的背景颜色
 
+        type: BottomNavigationBarType.fixed, // 模式是底部瀏覽模式
+        backgroundColor: Colors.black, // 設定AppBar的背景颜色
+        // 選擇的字高度設為0
         selectedLabelStyle: const TextStyle(height: 0),
-        // 将选中标签文本的高度设置为0
+        // 未選擇的字高度設為0
         unselectedLabelStyle: const TextStyle(height: 0),
-        // 将未选中标签文本的高度设置为0
+        // 調整Icon樣式
         selectedIconTheme: const IconThemeData(size: 32, color: Colors.white),
-        // 调整选中图标的样式
+        // 調整未選擇的Icon樣式
         unselectedIconTheme: const IconThemeData(size: 24, color: Colors.grey),
-        // 调整未选中图标的样式
+
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

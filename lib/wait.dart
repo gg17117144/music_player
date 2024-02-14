@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class CustomBody extends StatelessWidget {
   final String pageName;
 
-  const CustomBody(this.pageName, {Key? key}) : super(key: key);
+  const CustomBody(this.pageName, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +12,7 @@ class CustomBody extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(pageName,style: TextStyle(color: Colors.white, fontSize: 36),),
+          Text(pageName,style: const TextStyle(color: Colors.white, fontSize: 36),),
         ],
       ),
     );
