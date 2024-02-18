@@ -45,6 +45,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final PageController _pageController = PageController();
+  int _currentIndex = 0;
 
   //start
   @override
@@ -68,6 +69,11 @@ class _MainPageState extends State<MainPage> {
       body: PageView(
         controller: _pageController,
         physics: const AlwaysScrollableScrollPhysics(),
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         children: const [
           CustomBody('Home'),
           MusicPlayer(),
@@ -75,8 +81,9 @@ class _MainPageState extends State<MainPage> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        // currentIndex: _pageController.page?.round() ?? 0,
+        currentIndex: _currentIndex,
         onTap: (index) {
+          _currentIndex = index;
           changePage(index);
         },
 

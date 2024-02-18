@@ -54,10 +54,10 @@ class Menu extends StatelessWidget {
           }
       ),
       MusicList(
-        title: 'Idle',
+        title: 'Idol',
         icon: Icons.question_mark,
           onTap: (context) {
-            audioProvider.setSong('Idle');
+            audioProvider.setSong('Idol');
             MainPage.of(context)?.changePage(1);
           }
       ),

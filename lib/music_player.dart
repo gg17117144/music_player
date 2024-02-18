@@ -14,8 +14,6 @@ class MusicPlayer extends StatefulWidget {
 
 class _MusicPlayerState extends State<MusicPlayer>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-
-
   late GifController controller = GifController(vsync: this);
   late String song;
   late String audioUrl;
@@ -30,12 +28,14 @@ class _MusicPlayerState extends State<MusicPlayer>
     _duration = const Duration();
     _position = const Duration();
 
-    audioPlayerProvider.audioPlayer.onDurationChanged.listen((Duration duration) {
+    audioPlayerProvider.audioPlayer.onDurationChanged
+        .listen((Duration duration) {
       _duration = duration;
       setState(() {});
     });
 
-    audioPlayerProvider.audioPlayer.onPositionChanged.listen((Duration position) {
+    audioPlayerProvider.audioPlayer.onPositionChanged
+        .listen((Duration position) {
       _position = position;
       setState(() {});
     });
@@ -78,7 +78,8 @@ class _MusicPlayerState extends State<MusicPlayer>
   @override
   void initState() {
     super.initState();
-    final audioProvider = Provider.of<AudioPlayerProvider>(context, listen: false);
+    final audioProvider =
+        Provider.of<AudioPlayerProvider>(context, listen: false);
     song = audioProvider.currentSong;
     audioUrl = "audio/$song.mp3";
     audioPlayerProvider =
@@ -120,28 +121,32 @@ class _MusicPlayerState extends State<MusicPlayer>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
-      body: Center(
+      body: Align(
+        alignment: Alignment.center,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Gif(
-              controller: controller,
-              image: AssetImage("assets/images/$song.gif"),
-              autostart: Autostart.loop,
-              placeholder: (context) =>
-                  const Center(child: CircularProgressIndicator()),
-              height: 200,
-              width: 200,
+            Flexible(
+              child: Gif(
+                controller: controller,
+                image: AssetImage("assets/images/$song.gif"),
+                autostart: Autostart.loop,
+                placeholder: (context) =>
+                    const Center(child: CircularProgressIndicator()),
+                height: 200,
+                width: 200,
+              ),
             ),
             const SizedBox(
               height: 40,
             ),
             Text(song, style: const TextStyle(fontSize: 24, color: Colors.red)),
-            const SizedBox(
-              height: 10,
-            ),
+            // const SizedBox(
+            //   height: 10,
+            // ),
             // const Text('歌手名', style: TextStyle(color: Colors.white,fontSize: 14)),
 
             //音樂控制
@@ -180,7 +185,8 @@ class _MusicPlayerState extends State<MusicPlayer>
                 ),
                 IconButton(
                   onPressed: playOrPause,
-                  icon: Icon(audioPlayerProvider.audioPlayer.state == PlayerState.playing
+                  icon: Icon(audioPlayerProvider.audioPlayer.state ==
+                          PlayerState.playing
                       ? Icons.pause
                       : Icons.play_arrow),
                   iconSize: 50,
@@ -204,5 +210,4 @@ class _MusicPlayerState extends State<MusicPlayer>
   @override
   // TODO: implement wantKeepAlive
   bool get wantKeepAlive => true;
-
 }
