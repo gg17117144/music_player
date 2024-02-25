@@ -76,7 +76,7 @@ class _MainPageState extends State<MainPage> {
           });
         },
         children: const [
-          CustomBody('Home'),
+          ShowModelPage(),
           MusicPlayer(),
           Menu(),
         ],
